@@ -52,25 +52,25 @@ class PacksController extends Controller
         return response()->json(['message' => 'Vote added successfully']);
     }
 
+
     public function store(Request $request)
     {
-
         $data = $request->all();
 
         $newPack = new Pack();
-
         $newPack->name = $data['name'];
+
         if (array_key_exists('description', $data) && strlen($data['description']) > 5) {
             $newPack->description = $data['description'];
         }
 
         if (array_key_exists('background_url', $data)) {
-            $url = Storage::disk('public')->putFile('images', $request->file('background_url'));
-            $newPack->background_url = $url;
+            // ✅ Upload su Supabase Storage
+            $path = Storage::disk('s3')->putFile('', $request->file('background_url'));
+            $newPack->background_url = Storage::disk('s3')->url($path);
         }
 
         $newPack->save();
-
 
         $characters = $request->all()['characters'] ?? [];
 
@@ -79,12 +79,15 @@ class PacksController extends Controller
                 $newChar = new Character();
                 $newChar->name = $character['name'];
                 $newChar->pack_id = $newPack->id;
+
                 if ($request->hasFile("characters.$index.image_url")) {
-                    $url = Storage::disk('public')->putFile('images', $request->file("characters.$index.image_url"));
-                    $newChar->image_url = $url;
+                    // ✅ Upload su Supabase Storage
+                    $path = Storage::disk('s3')->putFile('', $request->file("characters.$index.image_url"));
+                    $newChar->image_url = Storage::disk('s3')->url($path);
                 } else {
                     $newChar->image_url = 'images/fake_image.png';
                 }
+
                 $newChar->save();
             }
         }
