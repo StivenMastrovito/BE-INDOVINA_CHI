@@ -65,7 +65,7 @@ class PacksController extends Controller
         }
 
         if (array_key_exists('background_url', $data)) {
-            $path = Storage::disk('s3')->putFile('', $request->file('background_url'));
+            $path = Storage::disk('s3')->putFile('images', $request->file('background_url'));
             $newPack->background_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
         }
 
@@ -80,7 +80,7 @@ class PacksController extends Controller
                 $newChar->pack_id = $newPack->id;
 
                 if ($request->hasFile("characters.$index.image_url")) {
-                    $path = Storage::disk('s3')->putFile('', $request->file("characters.$index.image_url"));
+                    $path = Storage::disk('s3')->putFile('images', $request->file("characters.$index.image_url"));
                     $newChar->image_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
                 } else {
                     $newChar->image_url = 'images/fake_image.png';
