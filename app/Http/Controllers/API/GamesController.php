@@ -10,29 +10,29 @@ use Illuminate\Http\Request;
 
 class GamesController extends Controller
 {
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'pack_id' => 'required|integer|exists:packs,id',
-            'room_code' => 'required|string|max:10|unique:games,room_code',
-        ]);
+    // public function store(Request $request)
+    // {
+    //     $data = $request->validate([
+    //         'pack_id' => 'required|integer|exists:packs,id',
+    //         'room_code' => 'required|string|max:10|unique:games,room_code',
+    //     ]);
 
-        $newGame = new Game();
+    //     $newGame = new Game();
 
-        $newGame->pack_id = $data['pack_id'];
-        $newGame->room_code = $data['room_code'];
-        $newGame->status = 'waiting';
+    //     $newGame->pack_id = $data['pack_id'];
+    //     $newGame->room_code = $data['room_code'];
+    //     $newGame->status = 'waiting';
 
-        $newGame->save();
+    //     $newGame->save();
 
-        Pack::where('id', $data['pack_id'])->increment('count');
+    //     Pack::where('id', $data['pack_id'])->increment('count');
 
-        return response()->json([
-            'message' => 'Game created successfully',
-            'room_code' => $data['room_code'],
-            'game_id' => $newGame->id,
-        ]);
-    }
+    //     return response()->json([
+    //         'message' => 'Game created successfully',
+    //         'room_code' => $data['room_code'],
+    //         'game_id' => $newGame->id,
+    //     ]);
+    // }
 
     public function show(Request $request)
     {
@@ -47,14 +47,40 @@ class GamesController extends Controller
         return response()->json($game);
     }
 
-    public function checkRoomCode(Request $request)
+    public function generateAndStore(Request $request)
     {
-        $room_code = $request->room_code;
+        $request->validate([
+            'pack_id' => 'required|integer|exists:packs,id',
+        ]);
 
-        $game = Game::where('room_code', $room_code)->first();
+        $maxAttempts = 10;
+        $roomCode = null;
+
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $candidate = strtoupper(substr(str_shuffle('ABCDEFGHJKLMNPQRSTUVWXYZ23456789'), 0, 6));
+
+            if (!Game::where('room_code', $candidate)->exists()) {
+                $roomCode = $candidate;
+                break;
+            }
+        }
+
+        if (!$roomCode) {
+            return response()->json(['message' => 'Impossibile generare un codice univoco'], 500);
+        }
+
+        $game = new Game();
+        $game->pack_id = $request->pack_id;
+        $game->room_code = $roomCode;
+        $game->status = 'waiting';
+        $game->save();
+
+        Pack::where('id', $request->pack_id)->increment('count');
 
         return response()->json([
-            'games' => $game,
+            'message' => 'Game created successfully',
+            'room_code' => $roomCode,
+            'game_id' => $game->id,
         ]);
     }
 
@@ -74,7 +100,8 @@ class GamesController extends Controller
         return response()->json(['message' => 'Game updated successfully']);
     }
 
-    public function updateStatus(Request $request){
+    public function updateStatus(Request $request)
+    {
         $data = $request->validate([
             'room_code' => 'required|exists:games,room_code',
             'status' => 'required|string',
@@ -91,7 +118,8 @@ class GamesController extends Controller
         return response()->json(['message' => 'Game updated successfully']);
     }
 
-    public function updateOnlyStatus(Request $request){
+    public function updateOnlyStatus(Request $request)
+    {
         $data = $request->validate([
             'game_id' => 'required|exists:games,id',
             'status' => 'required|string',
@@ -105,7 +133,8 @@ class GamesController extends Controller
         return response()->json(['message' => 'Game updated successfully']);
     }
 
-    public function guess(Request $request){
+    public function guess(Request $request)
+    {
         $data = $request->validate([
             'game_id' => 'required|integer|exists:games,id',
             'player_id' => 'required|integer|exists:players,id',
@@ -118,6 +147,4 @@ class GamesController extends Controller
 
         return response()->json(['correct' => $isCorrect]);
     }
-
-
 }

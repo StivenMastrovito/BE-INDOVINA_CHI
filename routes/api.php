@@ -12,13 +12,13 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::prefix('games')->controller(GamesController::class)->group(function () {
-    Route::post('store', 'store');
+    // Route::post('store', 'store');
     Route::post('guess', 'guess');
     Route::post('update', 'update');
     Route::post('update/status', 'updateStatus');
     Route::post('update/only/status', 'updateOnlyStatus');
     Route::post('control', 'show');
-    Route::get('check/{room_code}', 'checkRoomCode');
+    Route::post('generate', 'generateAndStore');
 });
 
 Route::prefix('packs')->controller(PacksController::class)->group(function (){
