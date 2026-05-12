@@ -14,8 +14,7 @@ class PacksController extends Controller
 {
     public function index()
     {
-        $packs = Pack::all();
-        $packs->load('pack_votes');
+        $packs = Pack::withAvg('pack_votes', 'vote')->get();
 
         return response()->json($packs);
     }
@@ -44,7 +43,7 @@ class PacksController extends Controller
 
         $vote = new Pack_Vote();
 
-        $vote->pack_id = $data['pack_id'];
+        $vote->pack_id = $data['id_pack'];
         $vote->vote = $data['vote'];
 
         $vote->save();
