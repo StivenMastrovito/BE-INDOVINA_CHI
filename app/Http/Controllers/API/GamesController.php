@@ -10,30 +10,6 @@ use Illuminate\Http\Request;
 
 class GamesController extends Controller
 {
-    // public function store(Request $request)
-    // {
-    //     $data = $request->validate([
-    //         'pack_id' => 'required|integer|exists:packs,id',
-    //         'room_code' => 'required|string|max:10|unique:games,room_code',
-    //     ]);
-
-    //     $newGame = new Game();
-
-    //     $newGame->pack_id = $data['pack_id'];
-    //     $newGame->room_code = $data['room_code'];
-    //     $newGame->status = 'waiting';
-
-    //     $newGame->save();
-
-    //     Pack::where('id', $data['pack_id'])->increment('count');
-
-    //     return response()->json([
-    //         'message' => 'Game created successfully',
-    //         'room_code' => $data['room_code'],
-    //         'game_id' => $newGame->id,
-    //     ]);
-    // }
-
     public function show(Request $request)
     {
         $room_code = $request->validate([
@@ -57,7 +33,7 @@ class GamesController extends Controller
         $roomCode = null;
 
         for ($i = 0; $i < $maxAttempts; $i++) {
-            $candidate = strtoupper(substr(str_shuffle('ABCDEFGHJKLMNPQRSTUVWXYZ23456789'), 0, 6));
+            $candidate = strtoupper(substr(str_shuffle('ABCDEFGHJKLMNPQRSTUVWXYZ23456789'), 0, 8));
 
             if (!Game::where('room_code', $candidate)->exists()) {
                 $roomCode = $candidate;
