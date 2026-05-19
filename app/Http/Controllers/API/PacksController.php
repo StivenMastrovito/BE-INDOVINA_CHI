@@ -19,6 +19,17 @@ class PacksController extends Controller
         return response()->json($packs);
     }
 
+    public function personalPacks(Request $request){
+        
+        $data = $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $packs = Pack::where('user_id', $data['user_id'])->get();
+
+        return response()->json($packs);
+    }
+
     public function show(Request $request)
     {
         $data = $request->validate([
@@ -68,6 +79,8 @@ class PacksController extends Controller
             $newPack->background_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
         }
 
+        $newPack->user_id = $data['user_id'];
+
         $newPack->save();
 
         $characters = $request->all()['characters'] ?? [];
@@ -90,6 +103,20 @@ class PacksController extends Controller
         return response()->json([
             'message' => 'Pack created successfully',
             'pack' => $newPack,
+        ]);
+    }
+
+    public function destroy(Request $request){
+        $data = $request->validate([
+            'pack_id' => 'required|exists:packs,id',
+        ]);
+
+        $pack = Pack::find($data['pack_id']);
+
+        $pack->delete();
+
+        return response()->json([
+            'message' => 'Pacchetto eliminato con successo!'
         ]);
     }
 }

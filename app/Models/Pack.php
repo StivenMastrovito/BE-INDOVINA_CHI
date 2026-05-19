@@ -17,4 +17,8 @@ class Pack extends Model
     public function pack_votes(){
         return $this->hasMany(Pack_Vote::class);
     }
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }
