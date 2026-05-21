@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\GamesController;
 use App\Http\Controllers\API\PacksController;
 use App\Http\Controllers\API\PlayersController;
