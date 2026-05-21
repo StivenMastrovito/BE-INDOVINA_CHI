@@ -16,6 +16,8 @@ class PacksController extends Controller
     {
         $packs = Pack::withAvg('pack_votes', 'vote')->orderBy('count', 'desc')->get();
 
+        $packs->load('characters');
+
         return response()->json($packs);
     }
 

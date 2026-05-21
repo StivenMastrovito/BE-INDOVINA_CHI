@@ -18,7 +18,7 @@ class GamesController extends Controller
 
         $game = Game::where('room_code', $room_code)->get();
 
-        $game->load('questions');
+        $game->load('questions', 'players');
 
         return response()->json($game);
     }

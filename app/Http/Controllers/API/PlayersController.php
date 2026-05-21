@@ -4,11 +4,22 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Character;
+use App\Models\Game;
 use App\Models\Player;
 use Illuminate\Http\Request;
 
 class PlayersController extends Controller
 {
+
+    public function show(Request $request)
+    {
+        $data = $request->validate(['game_id' => 'required|integer|exists:games,id',]);
+
+        $players = Player::where('game_id', $data['game_id'])->get();
+
+        return response()->json($players);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -17,27 +28,27 @@ class PlayersController extends Controller
             'character_id' => 'required|integer|exists:characters,id'
         ]);
 
-        $newPlayer = new Player();
+        $playerCount = Player::where('game_id', $data['game_id'])->count();
+        if ($playerCount >= 2) {
+            return response()->json(['message' => 'Room is full'], 422);
+        }
 
+        $newPlayer = new Player();
         $newPlayer->game_id = $data['game_id'];
         $newPlayer->nickname = $data['nickname'];
         $newPlayer->character_id = $data['character_id'];
         $newPlayer->is_ready = true;
-
         $newPlayer->save();
 
-        return response()->json(['message' => 'Player created successfully', 'player_id' => $newPlayer->id]);
+        $game = Game::find($data['game_id']);
+        $game->turn_player_id = $newPlayer->id;
+        $game->update();
+
+        return response()->json(['message' => 'Player creato  con successo', 'player_id' => $newPlayer->id]);
     }
 
-    public function show(Request $request){
-        $data = $request->validate(['game_id' => 'required|integer|exists:games,id',]);
-
-        $players = Player::where('game_id', $data['game_id'])->get();
-
-        return response()->json($players);
-    }
-
-    public function updateCharactersID(Request $request){
+    public function updateCharactersID(Request $request)
+    {
         $data = $request->validate([
             'character_id' => 'required|integer',
             'player_id' => 'required|integer|exists:players,id',
@@ -54,7 +65,8 @@ class PlayersController extends Controller
         ]);
     }
 
-    public function getSecretCharacter(Request $request){
+    public function getSecretCharacter(Request $request)
+    {
         $data = $request->validate([
             'player_id' => 'required|integer|exists:players,id'
         ]);
@@ -62,7 +74,5 @@ class PlayersController extends Controller
         $player = Player::find($data['player_id'])->load('character');
 
         return response()->json([$player]);
-
-
     }
 }
