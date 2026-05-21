@@ -10,15 +10,20 @@ use Illuminate\Http\Request;
 
 class GamesController extends Controller
 {
+
     public function show(Request $request)
     {
-        $room_code = $request->validate([
-            'room_code' => 'required',
+        $data = $request->validate([
+            'room_code' => 'required|string',
         ]);
 
-        $game = Game::where('room_code', $room_code)->get();
+        $game = Game::where('room_code', $data['room_code'])
+            ->with('questions', 'players')
+            ->first();
 
-        $game->load('questions', 'players');
+        if (!$game) {
+            return response()->json(['message' => 'Game not found'], 404);
+        }
 
         return response()->json($game);
     }
