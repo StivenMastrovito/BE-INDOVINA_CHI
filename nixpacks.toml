@@ -5,4 +5,4 @@ nixPkgs = ["php82", "php82Extensions.pdo", "php82Extensions.pdo_pgsql", "php82Ex
 cmds = ["composer install --no-dev --optimize-autoloader", "php artisan config:cache", "php artisan route:cache"]
 
 [start]
-cmd = "php -S 0.0.0.0:$PORT -t public"
+cmd = "php -d max_file_uploads=50 -d upload_max_filesize=20M -d post_max_size=100M -d memory_limit=256M -S 0.0.0.0:$PORT -t public"
