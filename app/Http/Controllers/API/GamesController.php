@@ -18,7 +18,7 @@ class GamesController extends Controller
         ]);
 
         $game = Game::where('room_code', $data['room_code'])
-            ->with('pack')
+            ->with('pack', 'characters')
             ->first();
 
         if (!$game) {
