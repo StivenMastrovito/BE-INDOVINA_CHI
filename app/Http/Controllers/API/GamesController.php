@@ -18,14 +18,21 @@ class GamesController extends Controller
         ]);
 
         $game = Game::where('room_code', $data['room_code'])
-            ->with('pack', 'characters')
             ->first();
+
+        $pack = Pack::find($game['pack_id']);
+        $pack->load('characters');
 
         if (!$game) {
             return response()->json(['message' => 'Game not found'], 404);
         }
 
-        return response()->json($game);
+        $result = [
+            'game' => $game,
+            'pack' => $pack
+        ];
+
+        return response()->json($result);
     }
 
     public function show(Request $request)
