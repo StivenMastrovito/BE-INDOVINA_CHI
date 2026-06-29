@@ -14,15 +14,16 @@ class PacksController extends Controller
 {
     public function index()
     {
-        $packs = Pack::withAvg('pack_votes', 'vote')->orderBy('count', 'desc')->get();
+        $packs = Pack::where('public', true)->withAvg('pack_votes', 'vote')->orderBy('count', 'desc')->get();
 
         $packs->load('characters');
 
         return response()->json($packs);
     }
 
-    public function personalPacks(Request $request){
-        
+    public function personalPacks(Request $request)
+    {
+
         $data = $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
@@ -81,6 +82,10 @@ class PacksController extends Controller
             $newPack->background_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
         }
 
+        if ($data['public']) {
+            $newPack->public = $data['public'];
+        }
+
         $newPack->user_id = $data['user_id'];
 
         $newPack->save();
@@ -108,7 +113,8 @@ class PacksController extends Controller
         ]);
     }
 
-    public function destroy(Request $request){
+    public function destroy(Request $request)
+    {
         $data = $request->validate([
             'pack_id' => 'required|exists:packs,id',
         ]);

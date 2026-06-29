@@ -19,7 +19,12 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://indovina-chi.vercel.app', 'http://localhost:5173'],
+    'allowed_origins' => [
+        'https://indovina-chi.vercel.app',
+        'http://localhost:5173',
+        'https://localhost',
+        'capacitor://localhost',
+    ],
 
     'allowed_origins_patterns' => [],
 
