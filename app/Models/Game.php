@@ -7,10 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Game extends Model
 {
     public function pack(){
-        return $this->hasOne(Pack::class);
+        return $this->belongsTo(Pack::class);
     }
-
-    
 
     public function chats(){
         return $this->hasMany(Chat::class);

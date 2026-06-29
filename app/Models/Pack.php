@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Pack extends Model
 {
     public function game(){
-        return $this->belongsTo(Game::class);
+        return $this->hasOne(Game::class);
     }
 
     public function characters(){
