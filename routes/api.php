@@ -28,6 +28,7 @@ Route::prefix('games')->controller(GamesController::class)->group(function () {
     Route::post('update/status', 'updateStatus');
     Route::post('update/only/status', 'updateOnlyStatus');
     Route::post('control', 'show');
+    Route::post('control/lobby', 'showLobby');
     Route::post('generate', 'generateAndStore');
 });
 

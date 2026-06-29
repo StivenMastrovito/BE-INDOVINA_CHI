@@ -11,6 +11,23 @@ use Illuminate\Http\Request;
 class GamesController extends Controller
 {
 
+    public function showLobby(Request $request)
+    {
+        $data = $request->validate([
+            'room_code' => 'required|string',
+        ]);
+
+        $game = Game::where('room_code', $data['room_code'])
+            ->with('pack')
+            ->first();
+
+        if (!$game) {
+            return response()->json(['message' => 'Game not found'], 404);
+        }
+
+        return response()->json($game);
+    }
+
     public function show(Request $request)
     {
         $data = $request->validate([
