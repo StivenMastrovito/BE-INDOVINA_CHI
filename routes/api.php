@@ -36,9 +36,11 @@ Route::prefix('packs')->controller(PacksController::class)->group(function () {
     Route::get('/', 'index');
     Route::post('/', 'show');
     Route::post('/addVote', 'addVote');
-    Route::post('/store', 'store');
-    Route::post('/mypacks', 'personalPacks');
-    Route::post('/delete', 'destroy');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/store', 'store');
+        Route::post('/mypacks', 'personalPacks');
+        Route::post('/delete', 'destroy');
+    });
 });
 
 Route::prefix('players')->controller(PlayersController::class)->group(function () {

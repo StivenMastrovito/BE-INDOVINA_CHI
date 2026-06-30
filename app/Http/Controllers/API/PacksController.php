@@ -24,11 +24,7 @@ class PacksController extends Controller
     public function personalPacks(Request $request)
     {
 
-        $data = $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
-
-        $packs = Pack::where('user_id', $data['user_id'])->get();
+        $packs = Pack::where('user_id', $request->user()->id)->get();
 
         return response()->json($packs);
     }
@@ -66,65 +62,138 @@ class PacksController extends Controller
     }
 
 
+    // public function store(Request $request)
+    // {
+    //     $data = $request->all();
+
+    //     $newPack = new Pack();
+    //     $newPack->name = $data['name'];
+
+    //     if (array_key_exists('description', $data) && strlen($data['description']) > 5) {
+    //         $newPack->description = $data['description'];
+    //     }
+
+    //     if (array_key_exists('background_url', $data)) {
+    //         $path = Storage::disk('s3')->putFile('', $request->file('background_url'));
+    //         $newPack->background_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
+    //     }
+
+    //     if ($data['public']) {
+    //         $newPack->public = $data['public'];
+    //     }
+
+    //     $newPack->user_id = $data['user_id'];
+
+    //     $newPack->save();
+
+    //     $characters = $request->all()['characters'] ?? [];
+
+    //     if (!empty($characters)) {
+    //         foreach ($characters as $index => $character) {
+    //             $newChar = new Character();
+    //             $newChar->name = $character['name'];
+    //             $newChar->pack_id = $newPack->id;
+
+    //             if ($request->hasFile("characters.$index.image_url")) {
+    //                 $path = Storage::disk('s3')->putFile('', $request->file("characters.$index.image_url"));
+    //                 $newChar->image_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
+    //             }
+
+    //             $newChar->save();
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'message' => 'Pack created successfully',
+    //         'pack' => $newPack,
+    //     ]);
+    // }
+
     public function store(Request $request)
-    {
-        $data = $request->all();
+{
+    $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'public' => 'nullable|boolean',
+        'background_url' => 'nullable|file|image|max:5120',
+        'characters' => 'nullable|array',
+        'characters.*.name' => 'required_with:characters|string|max:255',
+    ]);
 
-        $newPack = new Pack();
-        $newPack->name = $data['name'];
+    $newPack = new Pack();
+    $newPack->name = $data['name'];
 
-        if (array_key_exists('description', $data) && strlen($data['description']) > 5) {
-            $newPack->description = $data['description'];
-        }
-
-        if (array_key_exists('background_url', $data)) {
-            $path = Storage::disk('s3')->putFile('', $request->file('background_url'));
-            $newPack->background_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
-        }
-
-        if ($data['public']) {
-            $newPack->public = $data['public'];
-        }
-
-        $newPack->user_id = $data['user_id'];
-
-        $newPack->save();
-
-        $characters = $request->all()['characters'] ?? [];
-
-        if (!empty($characters)) {
-            foreach ($characters as $index => $character) {
-                $newChar = new Character();
-                $newChar->name = $character['name'];
-                $newChar->pack_id = $newPack->id;
-
-                if ($request->hasFile("characters.$index.image_url")) {
-                    $path = Storage::disk('s3')->putFile('', $request->file("characters.$index.image_url"));
-                    $newChar->image_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
-                }
-
-                $newChar->save();
-            }
-        }
-
-        return response()->json([
-            'message' => 'Pack created successfully',
-            'pack' => $newPack,
-        ]);
+    if (!empty($data['description']) && strlen($data['description']) > 5) {
+        $newPack->description = $data['description'];
     }
+
+    if ($request->hasFile('background_url')) {
+        $path = Storage::disk('s3')->putFile('', $request->file('background_url'));
+        $newPack->background_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
+    }
+
+    $newPack->public = $data['public'] ?? false;
+
+    $newPack->user_id = $request->user()->id;
+
+    $newPack->save();
+
+    $characters = $data['characters'] ?? [];
+
+    if (!empty($characters)) {
+        foreach ($characters as $index => $character) {
+            $newChar = new Character();
+            $newChar->name = $character['name'];
+            $newChar->pack_id = $newPack->id;
+
+            if ($request->hasFile("characters.$index.image_url")) {
+                $path = Storage::disk('s3')->putFile('', $request->file("characters.$index.image_url"));
+                $newChar->image_url = env('SUPABASE_STORAGE_URL') . '/' . basename($path);
+            }
+
+            $newChar->save();
+        }
+    }
+
+    return response()->json([
+        'message' => 'Pack created successfully',
+        'pack' => $newPack,
+    ]);
+}
+
+    // public function destroy(Request $request)
+    // {
+    //     $data = $request->validate([
+    //         'pack_id' => 'required|exists:packs,id',
+    //     ]);
+
+    //     $pack = Pack::find($data['pack_id']);
+
+    //     $pack->delete();
+
+    //     return response()->json([
+    //         'message' => 'Pacchetto eliminato con successo!'
+    //     ]);
+    // }
 
     public function destroy(Request $request)
-    {
-        $data = $request->validate([
-            'pack_id' => 'required|exists:packs,id',
-        ]);
+{
+    $data = $request->validate([
+        'pack_id' => 'required|exists:packs,id',
+    ]);
 
-        $pack = Pack::find($data['pack_id']);
+    $pack = Pack::find($data['pack_id']);
 
-        $pack->delete();
-
+    if ($pack->user_id !== $request->user()->id) {
         return response()->json([
-            'message' => 'Pacchetto eliminato con successo!'
-        ]);
+            'message' => 'Non sei autorizzato a eliminare questo pacchetto'
+        ], 403);
     }
+
+    $pack->delete();
+
+    return response()->json([
+        'message' => 'Pacchetto eliminato con successo!'
+    ]);
+}
 }
